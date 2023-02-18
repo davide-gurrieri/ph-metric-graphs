@@ -69,7 +69,6 @@ class Network:
                     color=vertices_color
                 )
             )
-
         data = [f0]
 
         # EDGES
@@ -93,8 +92,7 @@ class Network:
                     name='lines',
                     line=dict(
                         width=segments_thickness,
-                        color=segments_color
-                    )
+                        color=segments_color)
                 )
 
             data.append(f1)
@@ -118,25 +116,29 @@ class Network:
                     show = True):
 
         if(self.n_coord==2):
-             # estraggo le coordinate x e y dei punti
-            x = [p[0] for p in self.vertices]
-            y = [p[1] for p in self.vertices]
-
-            # rappresento i punti e i lati con la funzione plot
-            plt.plot(x, y, '.', color = vertices_color, markersize=vertices_thickness)  # rappresenta i punti come cerchi rossi
+            # vertices
+            x = self.vertices[:,0]
+            y = self.vertices[:,1]
+            plt.plot(x, y, '.',
+                     color = vertices_color,
+                     markersize=vertices_thickness)
+            # edges
             for i, j in self.edges:
-                plt.plot([x[i], x[j]], [y[i], y[j]], color = segments_color, linewidth=segments_thickness )  # rappresenta il lato con una linea nera
+                plt.plot([x[i], x[j]], [y[i], y[j]],
+                         color = segments_color,
+                         linewidth = segments_thickness )
 
         if(self.n_coord==3):
-            # Creazione del grafico tridimensionale
+
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-
-            # Rappresentazione dei punti tridimensionali
-            #for point in self.vertices:
-            ax.scatter(self.vertices[:,0], self.vertices[:,1], self.vertices[:,2], c=vertices_color,s=vertices_thickness)
-
-            # Rappresentazione dei lati del poligono
+            # vertices
+            ax.scatter(self.vertices[:,0],
+                       self.vertices[:,1],
+                       self.vertices[:,2],
+                        c=vertices_color,
+                        s=vertices_thickness)
+            # edges
             for edge in self.edges:
                 x = [self.vertices[edge[0]][0], self.vertices[edge[1]][0]]
                 y = [self.vertices[edge[0]][1], self.vertices[edge[1]][1]]
@@ -149,4 +151,6 @@ class Network:
     ############################################################################
 
     def __str__(self):
-        return f"{self.n_coord}-D network:\nNumber of vertices: {self.n_vertices}\nNumber of edges: {self.n_edges}"
+        return (f"{self.n_coord}-D network:\n"
+                f"Number of vertices: {self.n_vertices}\n"
+                f"Number of edges: {self.n_edges}")
