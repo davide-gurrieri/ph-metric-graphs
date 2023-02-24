@@ -1,0 +1,6 @@
+vertices_file_name = ../../data/complex_network/VertexCoordinates.txt
+edges_file_name = ../../data/complex_network/EdgeConnectivity.txt
+vertex_sep = ' '
+edge_sep = ' '
+indexes_from_0 = 1
+

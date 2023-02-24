@@ -1,0 +1,6 @@
+vertices_file_name = ../../data/synthetic_network/VerticesCoordinates_negSeed0.5.txt
+edges_file_name = ../../data/synthetic_network/Connectivity_negSeed0.5.txt
+vertex_sep = ','
+edge_sep = ','
+indexes_from_0 = 0
+
