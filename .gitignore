@@ -1,0 +1,5 @@
+python/env/
+python/test/output_plot/
+.vscode/
+output/
+src/build/
