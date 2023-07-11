@@ -4,13 +4,13 @@ Computation of persistent homology on metric graphs, with particular focus on va
 
 This repository is developed as part of the “Advanced Programming for Scientific Computing” course at Polytechnic University of Milan.
 
-The aim is to use topological data analysis to study geometrical features of vascular networks. This allows the detection of anomalies, like for example devascularized areas, that can be used to diagnose diseases.
+The aim is to use topological data analysis to study geometrical features of vascular networks. This allows the detection of anomalies, such as devascularized regions, which can be used for disease diagnosis purposes.
 
 The project is developed in C++ and Python, using the [Gudhi](https://gudhi.inria.fr/) library for the computation of persistent homology.
 
 ## Example
 
-The first image shows a particular step of the $\alpha$ - filtration of a real vascular network. The second one shows the corresponding persistence diagram. Thanks to the circled point, one can discover that the network presents a big devascularized void that can be considered as a risk factor for the presence of a tumor.
+The first image shows a particular step of the $\alpha$ - filtration of a real vascular network. The second one shows the corresponding persistence diagram. By observing the highlighted point, it becomes apparent that the network exhibits a significant devascularized void, which can be viewed as a potential risk factor for tumor development.
 
 ![plot1](./image/alpha_complex_step.png)
 ![plot2](./image/persistence_diagram.jpg)
@@ -28,7 +28,7 @@ sudo snap install cmake --classic # cmake
 sudo apt-get install libboost-all-dev # Boost
 ```
 
-To install and use the repository, please 'cd' to the folder you wish to install it, and clone it:
+To install and use the repository `cd` to the folder you wish to install it, and clone it:
 
 ```shell
 git clone --recursive https://github.com/davide-gurrieri/ph-metric-graphs.git
