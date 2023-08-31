@@ -1,5 +1,7 @@
 python/env/
-python/test/output_plot/
+python/new_experiment.ipynb
 .vscode/
 output/
 src/build/
+docs/html/
+docs/latex/
