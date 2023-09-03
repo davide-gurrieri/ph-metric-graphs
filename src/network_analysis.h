@@ -1,8 +1,8 @@
 /**
  * @file network_analysis.h
  * @author Davide Gurrieri (davide.gurrieri@mail.polimi.it)
- * @brief This file contains the declaration of the NetworkAnalysis class.
- * @version 0.1
+ * @brief This file contains classes declarations needed for the
+ * topology analysis of vascular networks.
  * @date 2023-08-29
  *
  * @copyright Copyright (c) 2023
@@ -11,9 +11,13 @@
 
 #pragma once
 
+#include "chrono.hpp"
+#include "geometry.h"
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -27,218 +31,310 @@
 
 using std::string;
 using std::vector;
+using CoordType = double;
 
-using Kernel = CGAL::Epeck_d<CGAL::Dynamic_dimension_tag>;
+// ##########################################################################
 
-using Point = Kernel::Point_d;
-using Edge = std::array<unsigned, 2>;
+/**
+ * @brief Abstract class that represent a generic filtration
+ *
+ */
+class Filtration {
+public:
+  /// Represents a filtered simplicial complex
+  using SimplexTree = Gudhi::Simplex_tree<>;
+  using Filtration_value = SimplexTree::Filtration_value;
+  /// Homology coefficents
+  using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
+  using Persistent_cohomology =
+      Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree,
+                                                          Field_Zp>;
 
-using Simplex_tree = Gudhi::Simplex_tree<>;
-using Filtration_value = Simplex_tree::Filtration_value;
-using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
-using Persistent_cohomology =
-    Gudhi::persistent_cohomology::Persistent_cohomology<Simplex_tree, Field_Zp>;
-using Alpha_complex = Gudhi::alpha_complex::Alpha_complex<Kernel>;
-
-class NetworkAnalysis {
-private:
-  vector<Point> vertices;
-  vector<Edge> edges;
-  vector<double> edges_length;
-  vector<unsigned> rej_edges_indexes;
+protected:
+  SimplexTree simplex_tree;
+  std::unique_ptr<Persistent_cohomology> persistent_cohomology = nullptr;
+  Chrono chrono;
 
 public:
-  Simplex_tree network_simplex_tree;
-  Simplex_tree alpha_simplex_tree;
-  vector<int> betti_numbers;
-  vector<double> max_voids_diameter;
-  vector<std::pair<Filtration_value, Filtration_value>> voids_pers_int;
+  /**
+   * @brief Computes the persistent homology of the filtered simplicial complex
+   *
+   * @param persistence_dim_max Boolean flag that indicates whether to compute
+   * the persistent homology also for the homology class of the dimension of the
+   * complex ($N$). If false, only the persistent homology of classes of
+   * dimension
+   * $\leq n$ are computed.
+   */
+  void compute_persistent_cohomology(bool persistence_dim_max);
 
+  /**
+   * @brief Saves the persistence information to a file
+   *
+   * @param filename Name of the file (including path) where to save the
+   * persistence diagram
+   */
+  void save_persistence(const string &filename) const;
+
+  /**
+   * @brief Prints information about the simplicial complex
+   *
+   * It cannot be const because SimplexTree::dimension() and
+   * SimplexTree::num_simplices() are (incorrectly) not const
+   */
+  void print_complex_info();
+
+  /**
+   * @brief Debug function to print simplices and filtration values in a range
+   *
+   * @param start_index Index of the first simplex to print
+   * @param length Number of simplices to print
+   */
+  void print_range_simplices(unsigned start_index, unsigned length);
+
+  /**
+   * @brief Prints the Betti numbers of the simplicial complex
+   *
+   * It cannot be const due to SimplexTree methods
+   */
+  void print_betti_numbers() const;
+
+  /**
+   * @brief prints the time taken to calculate the persistent homology
+   *
+   */
+  void print_elapsed_time() const;
+
+  /**
+   * @brief Pure virtual function that performs the topological analysis
+   *
+   */
+  virtual void make_analysis() = 0;
+
+  /**
+   * @brief Pure virtual function that prints the results of the topological
+   * analysis
+   *
+   */
+  virtual void print_analysis() = 0;
+
+  virtual ~Filtration() = default;
+};
+
+// ##########################################################################
+
+/**
+ * @brief Derived class from Filtration. It represents an alpha filtration
+ *
+ */
+class AlphaFiltration : public Filtration {
+public:
+  using Kernel = CGAL::Epeck_d<CGAL::Dynamic_dimension_tag>;
+  using AlphaPoint = Kernel::Point_d;
+  using Alpha_complex = Gudhi::alpha_complex::Alpha_complex<Kernel>;
+
+  vector<double> voids_diameter;
+  vector<std::pair<Filtration_value, Filtration_value>> voids_persistence;
+
+  /**
+   * @brief Default constructor
+   *
+   */
+  AlphaFiltration() = default;
+
+  /**
+   * @brief Construct a new Alpha Filtration object using a vector of points
+   *
+   * This constructor converts the input vector into a vector of AlphaPoint
+   * needed for the Gudhi Alpha_complex construction.
+   *
+   * @param points
+   */
+  AlphaFiltration(const vector<Point<CoordType>> &points);
+
+  /**
+   * @brief Computes an estimate of the maximum diameter of each void using
+   * voids persistence information
+   *
+   */
+  void compute_voids_diameter();
+
+  /**
+   * @brief Prints the persistence information and th estimate of the maximum
+   * diameter of the nmax most persistent voids
+   *
+   * @param nmax Number od diameters to print
+   */
+  void print_diameters(unsigned nmax) const;
+
+  /**
+   * @brief Calls Filtration::compute_persistent_cohomology and
+   * compute_voids_diameter
+   *
+   */
+  void make_analysis() override;
+
+  /**
+   * @brief Prints a report of the alpha filtration analysis
+   *
+   */
+  void print_analysis() override;
+};
+
+// ##########################################################################
+
+/**
+ * @brief Derived class from Filtration. It represents a radial filtration
+ *
+ */
+class RadialFiltration : public Filtration {
+public:
+  unsigned n_edges;
+  double max_radius;
+  /// Number of connected components in dimension 0 barcodes with persistence
+  /// less or equal 10% divided by the number of vessel segments
+  double tortuosity_descriptor;
+  /// Number of loops divided by the number of vessel segments
+  double loops_descriptor;
+
+  /**
+   * @brief Default constructor
+   *
+   */
+  RadialFiltration() = default;
+
+  /**
+   * @brief Construct a new Radial Filtration object using a vector of points
+   * and a vector of edges
+   *
+   * This contructor determines the centre of mass of the nodes and then assign
+   * to each node a filtration value equal to the distance from the centre. Edge
+   * filtration values are assigned as the maximum filtration value of the two
+   * nodes.
+   *
+   * @param points
+   * @param edges
+   */
+  RadialFiltration(const vector<Point<CoordType>> &points,
+                   const vector<Edge> &edges);
+
+  /**
+   * @brief Computes the tortuosity and loops descriptors
+   */
+  void compute_descriptors();
+
+  /**
+   * @brief Calls Filtration::compute_persistent_cohomology and
+   * compute_descriptors
+   *
+   */
+  void make_analysis() override;
+
+  /**
+   * @brief Prints a report of the radial filtration analysis
+   *
+   */
+  void print_analysis() override;
+};
+
+// ##########################################################################
+
+/**
+ * @brief Class that parses and stores vertices and edges of a network.
+ *
+ */
+class NetworkData {
+public:
+  vector<Point<CoordType>> vertices;
+  vector<Edge> edges;
+
+  /**
+   * @brief Prints the number of vertices and edges of the network.
+   *
+   */
+  void print_network_info() const;
+
+  /**
+   * @brief Reads data from files.
+   * @param filename_v Name of a file that contains the vertex data for the
+   * network (including path)
+   * @param sep_v Separator character used in the vertex data file (like ','
+   * or ' ')
+   * @param filename_e Name of a file that contains the edge data for the
+   * network. (including path)
+   * @param sep_e Separator character used in the edge data file (like ','
+   * or ' ')
+   * @param from_0 Boolean flag that indicates whether the vertices indices in
+   * the edge data file are 0-based (i.e., start from 0) or 1-based (i.e., start
+   * from 1)
+   */
+  void parse(const std::string &filename_v, char sep_v,
+             const string &filename_e, char sep_e, bool from_0);
+
+private:
+  /**
+   * @brief Reads vertices data from a file
+   * @param filename Name of a file that contains the vertex data for the
+   * network (including path)
+   * @param sep Separator character used in the vertex data file (like ',' or '
+   * ')
+   */
+  void read_vertices(const string &filename, char sep);
+
+  /**
+   * @brief Reads edge data from a file
+   * @param filename Name of a file that contains the edge data for the
+   * network. (including path)
+   * @param sep Separator character used in the edge data file (like ',' or ' ')
+   * @param from_0 Boolean flag that indicates whether the vertex indices in
+   * the edge data file are 0-based (i.e., start from 0) or 1-based (i.e., start
+   * from 1)
+   */
+  void read_edges(const string &filename, char sep, bool from_0);
+};
+
+// ##########################################################################
+
+/**
+ * @brief Class that performs the topological analysis of a network.
+ *
+ */
+class NetworkAnalysis {
+private:
+  const NetworkData *data;
+
+public:
+  std::vector<std::unique_ptr<Filtration>> filtrations;
+
+public:
   /**
    * @brief Default constructor
    */
   NetworkAnalysis() = default;
 
   /**
-   * @brief User defined constructor that reads data from files
+   * @brief Construct a new Network Analysis object building a radial and an
+   * alpha filtration.
    *
-   * The constructor calls two member functions of the class: read_vertices
-   * and read_edges passing them proper parameters. Then, calls
-   * init_network_complex and init_alpha_complex to initialize the network and
-   * alpha simplex trees, respectively.
-   *
-   * @param filename_v the name of a file that contains the vertex data for the
-   * network (including path)
-   * @param sep_v the separator character used in the vertex data file (like ','
-   * or ' ')
-   * @param filename_e the name of a file that contains the edge data for the
-   * network. (including path)
-   * @param sep_e the separator character used in the edge data file (like ','
-   * or ' ')
-   * @param from_0 a boolean flag that indicates whether the vertex indices in
-   * the edge data file are 0-based (i.e., start from 0) or 1-based (i.e., start
-   * from 1)
+   * @param data_
    */
-  NetworkAnalysis(const std::string &filename_v, char sep_v,
-                  const string &filename_e, char sep_e, bool from_0 = true);
+  NetworkAnalysis(const NetworkData *data_);
 
   /**
-   * @brief Computes the homology of the network (number of connected components
-   * and number of loops)
-   *
-   * Then initializes the coefficient field for homology to be
-   * $\mathbb{Z}/2\mathbb{Z}$, and computes the persistent cohomology of the
-   * network simplex tree. The Betti numbers of the network are printed to the
-   * console.
+   * @brief Performs the topological analysis of the network using all the
+   * filtrations.
    *
    */
-  void compute_network_homology();
+  void analyse() const;
 
   /**
-   * @brief Computes the alpha persistent homology for a given alpha simplex
-   * tree and stores voids ph informations and an exstimate of their maximum
-   * diameter.
+   * @brief Prints the results of the topological analysis.
    *
-   * The function uses the alpha simplex tree to compute the alpha persistent
-   * homology. PH is then used to calculate an extimate of the maximum diameter
-   * of each void in the complex. The filtration parameters corresponding to
-   * birth and death of each voids and their diameters are stored in the class
-   * members voids_pers_int and max_voids_diameter, respectively. If the
-   * write_file parameter is set to true, the persistence informations are
-   * written to a file named "alpha_persistence" in the "../output" directory.
-   * This file could be usefull to plot persistence barcodes and diagrams.
-   *
-   * @param write_file A boolean value indicating whether to write the
-   * persistence diagram to a file.
-   * @return void
    */
-  void compute_alpha_persistent_homology(bool write_file);
+  void print_global_analysis() const;
 
   /**
-   * @brief getter for the vertices vector of the network
-   * @param void
-   * @return vector<CGAL::Epeck_d<CGAL::Dynamic_dimension_tag>::Point_d>
+   * @brief Saves the persistence information of all the filtrations to files.
+   *
    */
-  vector<Point> get_vertices() const { return vertices; }
-
-  /**
-   * @brief getter for the edges vector of the network
-   * @param void
-   * @return vector<array<unsigned,2>>
-   */
-  vector<Edge> get_edges() const { return edges; }
-
-  /**
-   * @brief getter for the vector of the edges' indexes not inserted in the
-   * network simplex tree
-   *
-   * Edges that degenerate into a vertices or alredy in the simplex are not
-   * inserted.
-   *
-   * @param void
-   * @return vector<unsigned>
-   */
-  vector<unsigned> get_rej_edges_indexes() const { return rej_edges_indexes; }
-
-  void print_network_info() const;
-  void print_betti_numbers() const;
-  void print_max_voids_diameter(unsigned nmax) const;
-
-private:
-  /**
-   * @brief Reads vertex data from a file
-   *
-   * Reads vertex data from a file using std::getline,
-   * extracts the coordinate data using a std::stringstream, and stores it in a
-   * Point object (i.e. CGAL::Epeck_d<CGAL::Dynamic_dimension_tag>::Point_d). If
-   * the next character in the stream is equal to `sep`, it is ignored using the
-   * ignore() function. Points are stored in a class member vector `vertices`.
-   * @param filename the name of a file that contains the vertex data for the
-   * network (including path)
-   * @param sep the separator character used in the vertex data file (like ','
-   * or ' ')
-   */
-  void read_vertices(const string &filename, char sep);
-
-  /**
-   * @brief Reads edge data from a file
-   *
-   * Similar to read_vertices. In this case the vertices' indices of each edge
-   * are stored in an Edge (i.e std::array<unsigned, 2>) and are decremented
-   * by 1 if 1-based.
-   * Edges are stored in a class member vector `edges`.
-   *
-   * @param filename the name of a file that contains the edge data for the
-   * network. (including path)
-   * @param sep the separator character used in the edge data file (like ',' or
-   * ' ')
-   * @param from_0 a boolean flag that indicates whether the vertex indices in
-   * the edge data file are 0-based (i.e., start from 0) or 1-based (i.e., start
-   * from 1)
-   */
-  void read_edges(const string &filename, char sep, bool from_0);
-
-  /**
-   * @brief initialize the simplicial complex representing the network
-   *
-   * Iterates over each edge in the edges vector, inserts it into the network
-   * simplex tree data structure, and keeps track of any rejected edges by
-   * pushing their indexes onto the `rej_edges_indexes` vector.
-   *
-   * @param void
-   * @return void
-   */
-  void init_network_complex();
-
-  /**
-   * @brief Initializes an alpha complex from a list of points and displays
-   * information about the complex.
-   *
-   * Initializes an alpha complex from the vector of Points `vertices`, using
-   * the Gudhi library. If the alpha complex is successfully created, displays
-   * informations about the complex. Otherwise prints an error message.
-   *
-   * @param void
-   * @return void
-   */
-  void init_alpha_complex();
+  void save_persistence(const std::string &name) const;
 };
-
-/**
- * @brief Prints a range of simplices from a simplex tree, with their filtration
- * values
- *
- * Prints to the console the simplices in the range [start_index,
- * start_index+length-1] of the simplex tree st, along with their filtration
- * values. The function returns an error message and does not print anything if
- * the range is invalid.
- *
- * @param st The simplex tree to print from
- * @param start_index The index of the first simplex to print
- * @param length The number of simplices to print
- * @return void
- */
-void print_range_simplices(Simplex_tree &st, unsigned start_index,
-                           unsigned length);
-
-/**
- * @brief Prints useful informations about the simplex tree passed as input
- * @param st The simplex tree to print from
- * @return void
- */
-void print_simplex_info(Simplex_tree &st);
-
-/*
-Using the default CGAL::Epeck_d makes the construction safe.
-If you pass exact=true to create_complex, the filtration values are the exact
-ones converted to the filtration value type of the simplicial complex. This can
-be very slow. If you pass exact=false (the default), the filtration values are
-only guaranteed to have a small multiplicative error compared to the exact
-value.
-
-Using CGAL::Epick_d makes the computations slightly faster, and the
-combinatorics are still exact, but the computation of filtration values can
-exceptionally be arbitrarily bad. In all cases, it is still guaranteed that the
-output is a valid filtration (faces have a filtration value no larger than their
-cofaces).
-*/

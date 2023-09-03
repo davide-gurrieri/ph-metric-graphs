@@ -1,3 +1,4 @@
+network_name = real
 vertices_file_name = ../../data/complex_network/VertexCoordinates.txt
 edges_file_name = ../../data/complex_network/EdgeConnectivity.txt
 vertex_sep = ' '
