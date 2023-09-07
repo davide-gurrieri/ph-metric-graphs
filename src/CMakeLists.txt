@@ -68,7 +68,7 @@ message("GUDHI_VERSION = ${GUDHI_VERSION}")
 message("GUDHI_INCLUDE_DIRS = ${GUDHI_INCLUDE_DIRS}")
 include_directories(${GUDHI_INCLUDE_DIRS})
 
-add_executable (network_analysis main.cpp network_analysis.cpp chrono.cpp)
+add_executable (network_analysis main.cpp network_analysis.cpp)
 target_link_libraries(network_analysis ${CGAL_LIBRARY} )
 if (TBB_FOUND)
   target_link_libraries(network_analysis ${TBB_LIBRARIES})
