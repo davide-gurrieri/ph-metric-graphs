@@ -132,9 +132,11 @@ public:
   using AlphaPoint = Kernel::Point_d;
   using Alpha_complex = Gudhi::alpha_complex::Alpha_complex<Kernel>;
 
+private:
   vector<double> voids_diameter;
   vector<std::pair<Filtration_value, Filtration_value>> voids_persistence;
 
+public:
   /**
    * @brief Default constructor
    *
@@ -191,7 +193,8 @@ public:
   unsigned n_edges;
   double max_radius;
   /// Number of connected components in dimension 0 barcodes with persistence
-  /// less or equal 10% divided by the number of vessel segments
+  /// less or equal the 10% of the max_radius divided by the number of vessel
+  /// segments
   double tortuosity_descriptor;
   /// Number of loops divided by the number of vessel segments
   double loops_descriptor;
@@ -301,8 +304,6 @@ private:
 class NetworkAnalysis {
 private:
   const NetworkData *data;
-
-public:
   std::vector<std::unique_ptr<Filtration>> filtrations;
 
 public:

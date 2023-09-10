@@ -143,12 +143,11 @@ RadialFiltration::RadialFiltration(const vector<Point<CoordType>> &points,
     filtration_value = (points[i] - center).norm();
     if (filtration_value > max_radius)
       max_radius = filtration_value;
-
     simplex_tree.insert_simplex({i}, filtration_value);
   }
   for (const auto &edge : edges) {
-    const double filtration_value = std::max((points[edge[0]] - center).norm(),
-                                             (points[edge[1]] - center).norm());
+    filtration_value = std::max((points[edge[0]] - center).norm(),
+                                (points[edge[1]] - center).norm());
     simplex_tree.insert_simplex_and_subfaces(edge, filtration_value);
   }
   n_edges = simplex_tree.num_simplices() - simplex_tree.num_vertices();
@@ -156,7 +155,7 @@ RadialFiltration::RadialFiltration(const vector<Point<CoordType>> &points,
 
 void RadialFiltration::compute_descriptors() {
   // compute the descriptors
-  std::vector<std::pair<double, double>> persistence_0 =
+  const std::vector<std::pair<double, double>> &persistence_0 =
       persistent_cohomology->intervals_in_dimension(0);
 
   tortuosity_descriptor =
