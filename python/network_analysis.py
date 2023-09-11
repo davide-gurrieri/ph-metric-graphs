@@ -390,7 +390,6 @@ class Filtration:
             )
         if show:
             fig.show()
-        fig.write_html("prova.html")
 
     def plot_persistence(
         self, max_intervals=100, save=True, show=False, network_name=""
