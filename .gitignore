@@ -1,4 +1,6 @@
 python/env/
+python/.ipynb_checkpoints/
+python/__pycache__/
 python/new_experiment.ipynb
 .vscode/
 output/
