@@ -8,31 +8,33 @@ The aim is to use topological data analysis to study geometrical features of vas
 
 The project is developed in C++ and Python, using the [GUDHI](https://gudhi.inria.fr/) library for the computation of persistent homology.
 
-A detailed description of the project can be found in the [report](https://github.com/davide-gurrieri/ph-metric-graphs/blob/main/report/report.pdf).
+A detailed description of the work can be found in the [report](https://github.com/davide-gurrieri/ph-metric-graphs/blob/main/report/report.pdf).
 
-## Prerequisites
+To use the repository `cd` to the folder you wish to install it, and clone it:
 
-### Gudhi
+```shell
+git clone https://github.com/davide-gurrieri/ph-metric-graphs.git
+```
 
-To build `gudhi` you will need `cmake` $\geq$ 3.5,  `Boost` $\geq$ 1.66.0.
+## C++ version
+
+### Prerequisites
+
+To build `GUDHI` you will need `cmake`, `Boost`, `CGAL` and `EIGEN3`.
 
 On Linux machines, it is sufficient to run:
 
 ```shell
 sudo snap install cmake --classic # cmake
 sudo apt-get install libboost-all-dev # Boost
+sudo apt-get install libcgal-dev # CGAL
+sudo apt-get install libeigen3-dev # Eigen
 ```
 
-To install and use the repository `cd` to the folder you wish to install it, and clone it:
+To build and install `GUDHI`:
 
 ```shell
-git clone --recursive https://github.com/davide-gurrieri/ph-metric-graphs.git
-```
-
-To build and install `gudhi`:
-
-```shell
-git submodule update
+git clone https://github.com/GUDHI/gudhi-devel.git
 cd gudhi-devel
 mkdir build
 cd build/
@@ -41,20 +43,9 @@ make
 make install
 ```
 
-### Python prerequisites
-
-It is suggested the use of a virtual environment to install the required packages.
-
-```shell
-cd python
-python3 -m venv env
-source env/bin/activate
-pip install -r requirements.txt
-```
-
 ## Compilation and execution
 
-To compile the C++ source code:
+To compile the C++ source code `cd` to the repository folder and run:
 
 ```bash
 cd src/
@@ -63,8 +54,39 @@ cmake ..
 make
 ```
 
-To run the program:
+You can run the analysis on both the real (`options1.txt`) and the synthetic networks (`options2.txt`) by running:
 
 ```bash
-./network_analysis
+./network_analysis file=options1.txt
 ```
+
+To select a different synthetic network, change `options2.txt`. The available networks are in the `data` folder.
+
+## Python version
+
+### Prerequisites
+
+You need pip to get te prerequisites for the Python version.
+
+```shell
+sudo apt install python3-pip
+```
+
+To install the prerequisites run from the repository folder:
+
+```shell
+cd python
+pip install -U -r requirements.txt
+```
+
+### Execution
+
+You can execute jupyter notebooks in a web browser by running:
+
+```shell
+jupyter notebook
+```
+
+## Results
+
+All the plots will be in the `output` folder.
