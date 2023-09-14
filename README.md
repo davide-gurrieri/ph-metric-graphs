@@ -20,7 +20,7 @@ git clone https://github.com/davide-gurrieri/ph-metric-graphs.git
 
 ### Prerequisites
 
-To build `GUDHI` you will need `cmake`, `Boost`, `CGAL` and `EIGEN3`.
+To build `GUDHI` you will need `cmake`, `Boost`, `CGAL`, `EIGEN3`, `OpenGL` and `TBB`.
 
 On Linux machines, it is sufficient to run:
 
@@ -29,6 +29,8 @@ sudo snap install cmake --classic # cmake
 sudo apt-get install libboost-all-dev # Boost
 sudo apt-get install libcgal-dev # CGAL
 sudo apt-get install libeigen3-dev # Eigen
+sudo apt install freeglut3-dev # OpenGL
+sudo apt install libtbb-dev # TBB
 ```
 
 To build and install `GUDHI`:
