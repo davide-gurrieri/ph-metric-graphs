@@ -16,6 +16,39 @@ To use the repository `cd` to the folder you wish to install it, and clone it:
 git clone https://github.com/davide-gurrieri/ph-metric-graphs.git
 ```
 
+## Structure
+
+```
+├── README.md
+├── data
+│   ├── complex_network
+│   └── synthetic_network
+├── docs
+│   └── Doxyfile
+├── output
+│   ├── README
+│   ├── plot
+│   └── plot_python
+├── python
+│   ├── network_analysis.py
+│   ├── plot_ph_from_cpp_file.py
+│   ├── real_networks_analysis.ipynb
+│   ├── requirements.txt
+│   └── synthetic_network_analysis.ipynb
+├── report
+│   └── report.pdf
+└── src
+    ├── CMakeLists.txt
+    ├── GetPot
+    ├── chrono.hpp
+    ├── geometry.h
+    ├── main.cpp
+    ├── network_analysis.cpp
+    ├── network_analysis.h
+    ├── options1.txt
+    └── options2.txt
+```
+
 ## C++ version
 
 ### Prerequisites
@@ -63,6 +96,16 @@ You can run the analysis on both the real (`options1.txt`) and the synthetic net
 ```
 
 To select a different synthetic network, change `options2.txt`. The available networks are in the `data` folder.
+
+To obtain the documentation run:
+
+```shell
+sudo apt install doxygen
+cd docs/
+doxygen
+```
+
+Open the `index.html` file in the `html` folder to view the documentation.
 
 ## Python version
 
