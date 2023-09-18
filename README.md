@@ -78,7 +78,7 @@ make
 make install
 ```
 
-## Compilation and execution
+### Compilation and execution
 
 To compile the C++ source code `cd` to the repository folder and run:
 
